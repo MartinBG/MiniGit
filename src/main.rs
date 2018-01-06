@@ -10,5 +10,5 @@ fn main() {
 	//print!("{:?}", a.len());
     let args: Vec<String> = env::args().collect();
     // println!("{:?}", args);
-    println!("{:?}",MiniGit::parse_command(&args).unwrap());
+    println!("{:?}",MiniGit::command_parsing::parse_command(&args).unwrap());
 }
