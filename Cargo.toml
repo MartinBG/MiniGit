@@ -1,0 +1,6 @@
+[package]
+name = "MiniGit"
+version = "0.1.0"
+authors = ["MartinBG <martingeo95@gmail.com>"]
+
+[dependencies]
