@@ -6,3 +6,4 @@ pub mod commit;
 pub mod cherry_pick;
 pub mod revert;
 pub mod status;
+pub mod DirTree;
