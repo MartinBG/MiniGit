@@ -31,7 +31,6 @@ impl DirTree {
 				};
 
 				let path = walk_dir.path();
-				// println!("{:?}", path);
 				let is_dir = path.is_dir();
 				let path_str = String::from(path.to_str().unwrap()); 
 				
@@ -62,14 +61,10 @@ pub fn get_file_content(file_path: &PathBuf) -> String {
 		String::new()
 	} 
 	else {
-		println!("before open file");
 		let mut f = File::open(&file_path).expect("file not found");
-		println!("after open");
 	    let mut contents = String::new();
 	    f.read_to_string(&mut contents)
 	        .expect("something went wrong reading the file");
-	    println!("after read");
-	    println!("{:?}", contents);
 	    return String::from(contents);
 	}
 }

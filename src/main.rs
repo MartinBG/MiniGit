@@ -9,6 +9,8 @@ extern crate MiniGit;
 use MiniGit::commit_node::*;
 #[macro_use] 
 extern crate serde;
+#[macro_use]
+extern crate serde_json;
 
 
 
@@ -22,11 +24,13 @@ fn main() {
     	commit_vec: commits
     };
     // print!("{:?}", commitVec);
-    SerializeCommits(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), &commitVec);
+    // SerializeCommits(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), &commitVec);
     //let des = DeserializeCommits(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
 
     //commit_node::SerializeCommits()
     // let a = MiniGit::dir_ops::get_root_dir(&String::from("C:\\MyThings\\rust\\MiniGit"));
     // print!("{:?}", a);
-
+    let str_vec = vec!(String::from("a"), String::from("b"), String::from("c"));
+	let serialized = serde_json::to_string(&str_vec).unwrap();
+	let des: Vec<String> = serde_json::from_str(&serialized).unwrap();
 }

@@ -34,29 +34,23 @@ pub fn DeserializeCommits(start_dir: &String) -> Vec<CommitNode> {
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
 	dir_path_buf.push("commits.json");
-	// let commits_path = dir_path_buf.as_path();
-	println!("before read");
 	let commits_str = get_file_content(&dir_path_buf);
-	print!("before des");
 	let commits: Vec<CommitNode> = match serde_json::from_str(&commits_str) {
 		Ok(res) => res,
 		Err(err) => panic!(String::from(err.description()))
 	};
-	println!("after des");
 	commits
 } 
 
-pub fn SerializeCommits(start_dir: &String, commits: &Commits) {
+pub fn SerializeCommit(start_dir: &String, commits: &Commits) {
 	let root_dir = get_root_dir(start_dir);
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
 	dir_path_buf.push("commits.json");
 	//let commits_path = dir_path_buf.as_path();
 	let serialized = serde_json::to_string(&commits).unwrap();
-	println!("{:?}", serialized);
-	// write_to_file(&dir_path_buf, &serialized);
-	let commits: Vec<CommitNode> = serde_json::from_str(&serialized).unwrap();
-	println!("{:?}", &commits);
+	write_to_file(&dir_path_buf, &serialized);
+	// let commits: Vec<CommitNode> = serde_json::from_str(&serialized).unwrap();
 }
 
 
