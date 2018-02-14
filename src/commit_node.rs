@@ -1,56 +1,72 @@
-use ::dir_ops::*;
 
 use std::path::PathBuf;
 use ::{serde_json,serde_derive};
 use std::error::Error;
-
+extern crate time;
+use self::time::{Tm,now};
+use ::dir_ops::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommitNode {
-	id: u32,
-	//commit_time: String,
+	commit_time: String,
 	message: String,
 	dir_state: DirTree
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Commits {
-	pub commit_vec: Vec<CommitNode>
-}
+// #[derive(Serialize, Deserialize, Debug)]
+// pub struct Commits {
+// 	pub commit_vec: Vec<CommitNode>
+// }
 
 impl CommitNode {
-	pub fn new(id: u32, root_dir: &String, message: &String) -> Self {
+	pub fn new(root_dir: &String, message: &String) -> Self {
 		CommitNode {
-			id: id,
-			//commit_time: Utc::now(),
+			commit_time: TmToString(&now()),
 			message: message.clone(),
 			dir_state: DirTree::new(root_dir)
 		}
 	}
 }
 
-pub fn DeserializeCommits(start_dir: &String) -> Vec<CommitNode> {
+pub fn TmToString(time: &Tm) -> String {
+	let mut str_time: Vec<String> = Vec::new();
+	str_time.push((time.tm_year + 1900).to_string());
+	str_time.push(time.tm_mon.to_string());
+	str_time.push(time.tm_mday.to_string());
+	str_time.push(time.tm_hour.to_string());
+	str_time.push(time.tm_min.to_string());
+	str_time.push(time.tm_sec.to_string());
+	str_time.join(".")
+}
+
+pub fn DeserializeCommit(start_dir: &String, commit_id: &String) -> CommitNode {
 	let root_dir = get_root_dir(start_dir);
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
-	dir_path_buf.push("commits.json");
-	let commits_str = get_file_content(&dir_path_buf);
-	let commits: Vec<CommitNode> = match serde_json::from_str(&commits_str) {
+	dir_path_buf.push(&commit_id);
+	let commit_str = get_file_content(&dir_path_buf);
+	let commit: CommitNode = match serde_json::from_str(&commit_str) {
 		Ok(res) => res,
 		Err(err) => panic!(String::from(err.description()))
 	};
-	commits
+	commit
 } 
 
-pub fn SerializeCommit(start_dir: &String, commits: &Commits) {
+pub fn SerializeCommit(start_dir: &String, commit: &CommitNode) -> String {
 	let root_dir = get_root_dir(start_dir);
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
-	dir_path_buf.push("commits.json");
-	//let commits_path = dir_path_buf.as_path();
-	let serialized = serde_json::to_string(&commits).unwrap();
-	write_to_file(&dir_path_buf, &serialized);
-	// let commits: Vec<CommitNode> = serde_json::from_str(&serialized).unwrap();
+
+	let serialized_commit = serde_json::to_string(&commit).unwrap();
+	let mut commit_name = String::from("commit_");
+	commit_name.push_str(&commit.commit_time);
+	commit_name.push_str(".json");
+	dir_path_buf.push(&commit_name);
+	
+	let serialized = serde_json::to_string(&commit).unwrap();
+	write_to_file(&dir_path_buf, &serialized_commit);
+
+	commit_name
 }
 
 

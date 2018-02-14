@@ -15,10 +15,25 @@ struct DirItem {
 	hash: String
 }
 
+pub struct DirTreeDifferences {
+	removed_items: Vec<DirItem>,
+	added_items: Vec<DirItem>
+}
+
+impl DirTreeDifferences {
+	pub fn new() -> Self {
+		DirTreeDifferences {
+			removed_items: vec!(),
+			added_items: vec!()
+		}
+	}
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DirTree {
 	dir_items: Vec<DirItem>
 }
+
 
 impl DirTree {
 	pub fn new(root_path: &String) -> Self {
@@ -53,6 +68,38 @@ impl DirTree {
 			dir_items: dir_items
 		}
 	}
+
+	pub fn differences(&self, other: &DirTree) -> DirTreeDifferences {
+		let mut diff = DirTreeDifferences::new();
+
+		let mut it = self.dir_items.iter().peekable();
+		let mut other_it = other.dir_items.iter().peekable();
+
+		loop {
+			let it_el = it.peek().unwrap();
+			let other_it_el = other_it.peek().unwrap();
+
+			if it_el == None && other_it_el == None {
+				return diff;
+			}
+			else if it_el == None {
+				diff.added_items.push(other_it_el.clone());
+				other_it.next();
+			}
+			else if other_it_el == None {
+				diff.removed_items.push(it_el.clone());
+				it.next();
+			}
+			else if it_el.path == other_it_el.path {
+				if it_el.hash != other_it_el.hash {
+					diff.added_items.push(other_it_el.clone());
+					diff.removed_items.push(it_el.clone());
+				}
+				it.next();
+				other_it.next();
+			}
+		}
+	}
 }
 
 pub fn get_file_content(file_path: &PathBuf) -> String {
@@ -76,7 +123,7 @@ pub fn write_to_file(file_path: &PathBuf, contents: &String) {
         .expect("something went wrong writing the file");
 }
 
-fn gen_hash(file_contents: &String) -> String {
+pub fn gen_hash(file_contents: &String) -> String {
 	let mut sha = Sha1::new();
     sha.input_str(file_contents.as_ref());
     sha.result_str()
