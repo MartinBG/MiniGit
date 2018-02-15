@@ -16,3 +16,4 @@ pub mod revert;
 pub mod status;
 pub mod dir_ops;
 pub mod commit_node;
+pub mod commits_status;

@@ -8,9 +8,9 @@ use ::dir_ops::*;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommitNode {
-	commit_time: String,
-	message: String,
-	dir_state: DirTree
+	pub commit_time: String,
+	pub message: String,
+	pub dir_state: DirTree
 }
 
 // #[derive(Serialize, Deserialize, Debug)]
@@ -25,6 +25,13 @@ impl CommitNode {
 			message: message.clone(),
 			dir_state: DirTree::new(root_dir)
 		}
+	}
+
+	pub fn print(&self) {
+		println!("\ncommit id: commit_{}.json", self.commit_time);
+		println!("commit message: {:?}", self.message);
+		println!("commited time: {}", self.commit_time);
+
 	}
 }
 
@@ -43,6 +50,7 @@ pub fn DeserializeCommit(start_dir: &String, commit_id: &String) -> CommitNode {
 	let root_dir = get_root_dir(start_dir);
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
+	dir_path_buf.push("commits");
 	dir_path_buf.push(&commit_id);
 	let commit_str = get_file_content(&dir_path_buf);
 	let commit: CommitNode = match serde_json::from_str(&commit_str) {
@@ -56,6 +64,7 @@ pub fn SerializeCommit(start_dir: &String, commit: &CommitNode) -> String {
 	let root_dir = get_root_dir(start_dir);
 	let mut dir_path_buf = PathBuf::from(&root_dir);
 	dir_path_buf.push("_init_");
+	dir_path_buf.push("commits");
 
 	let serialized_commit = serde_json::to_string(&commit).unwrap();
 	let mut commit_name = String::from("commit_");
@@ -68,9 +77,6 @@ pub fn SerializeCommit(start_dir: &String, commit: &CommitNode) -> String {
 
 	commit_name
 }
-
-
-
 
 // 
 // struct Point {

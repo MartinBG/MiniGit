@@ -9,12 +9,25 @@ use self::crypto::digest::Digest;
 use self::crypto::sha1::Sha1;
 use ::{serde_json,serde_derive};
 
-#[derive(Serialize, Deserialize, Debug)]
-struct DirItem {
-	path: String,
-	hash: String
+use std::ops::Deref;
+use std::fs::{remove_file, create_dir};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DirItem {
+	pub path: String,
+	pub hash: String
 }
 
+impl DirItem {
+	pub fn new() -> Self {
+		DirItem {
+			path: String::new(),
+			hash: String::new()
+		}
+	}
+}
+
+#[derive(Debug)]
 pub struct DirTreeDifferences {
 	removed_items: Vec<DirItem>,
 	added_items: Vec<DirItem>
@@ -27,18 +40,59 @@ impl DirTreeDifferences {
 			added_items: vec!()
 		}
 	}
+
+	pub fn apply(&self) {
+		for f in self.removed_items.iter() {
+			if f.hash != "" {
+				let path = PathBuf::from(&f.path);
+				remove_file(&path).expect("Could not delete file!");
+			}
+		}
+		for f in self.added_items.iter() {
+			let pathBuf = PathBuf::from(&f.path);
+			let path = pathBuf.as_path();
+			
+			if f.hash == "" && !path.is_dir() {
+				create_dir(&path).expect("Could not create directory!");
+			} else {
+				let path_str = String::from(path.to_str().unwrap());
+				let content = get_from_db(&path_str, &f.hash);
+				write_to_file(&pathBuf, &content);
+			}
+		}
+	}
+
+
+	pub fn print(&self) {
+		println!();
+		if self.added_items.len() == 0 && self.removed_items.len() == 0 {
+			print!("No changes in directory!");
+		} else {
+			for x in self.added_items.iter() {
+				if x.hash != "" {
+					println!("++{:?}", x.path);
+				}
+			}
+			println!("\n");
+			for x in self.removed_items.iter() {
+				if x.hash != "" {
+					println!("--{:?}", x.path);
+				}
+			}
+		}
+	}
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DirTree {
-	dir_items: Vec<DirItem>
+	pub dir_items: Vec<DirItem>
 }
 
 
 impl DirTree {
 	pub fn new(root_path: &String) -> Self {
 		let mut dir_items: Vec<DirItem> = vec!();
-		for entry in WalkDir::new(root_path).max_depth(1) {
+		for entry in WalkDir::new(root_path) {
 				
 				let walk_dir = match entry {
 					Ok(walk_dir) => walk_dir,
@@ -49,6 +103,10 @@ impl DirTree {
 				let is_dir = path.is_dir();
 				let path_str = String::from(path.to_str().unwrap()); 
 				
+				if path_str.contains("_init_") {
+					continue;
+				}
+
 				let mut file_hash = String::new();
 
 				if !is_dir {
@@ -72,32 +130,67 @@ impl DirTree {
 	pub fn differences(&self, other: &DirTree) -> DirTreeDifferences {
 		let mut diff = DirTreeDifferences::new();
 
-		let mut it = self.dir_items.iter().peekable();
-		let mut other_it = other.dir_items.iter().peekable();
+		let mut it = self.dir_items.iter();
+		let mut other_it = other.dir_items.iter();
+		
+		let mut it_stop = false;
+		let mut other_it_stop = false;
 
+		let dummy = DirItem::new();
+
+		let mut it_el: &DirItem = match it.next() {
+				Some(x) => x,
+				None => {it_stop = true; &dummy}
+			};
+		let mut other_it_el: &DirItem = match other_it.next() {
+				Some(x) => x,
+				None => {other_it_stop = true;  &dummy}
+			};
+
+		let mut cnt = 0;
 		loop {
-			let it_el = it.peek().unwrap();
-			let other_it_el = other_it.peek().unwrap();
-
-			if it_el == None && other_it_el == None {
+			// println!("cnt: {:?}\n{:?}\n\n{:?}\n", &cnt, it_el, other_it_el);
+			cnt+=1;
+			if it_stop && other_it_stop {
+				// println!("final stop");
 				return diff;
 			}
-			else if it_el == None {
-				diff.added_items.push(other_it_el.clone());
-				other_it.next();
+			else if it_stop || (!other_it_stop && it_el.path > other_it_el.path) {
+				// println!("left stop");
+				diff.added_items.push(other_it_el.deref().clone());
+				other_it_el = match other_it.next() {
+					Some(x) => x,
+					None => {other_it_stop = true;  &dummy}
+				};
 			}
-			else if other_it_el == None {
+			else if other_it_stop || (!it_stop && it_el.path < other_it_el.path) {
+				// println!("right stop");
 				diff.removed_items.push(it_el.clone());
-				it.next();
+				it_el = match it.next() {
+					Some(x) => x,
+					None => {it_stop = true; &dummy}
+				};
 			}
 			else if it_el.path == other_it_el.path {
 				if it_el.hash != other_it_el.hash {
-					diff.added_items.push(other_it_el.clone());
-					diff.removed_items.push(it_el.clone());
+					diff.added_items.push(other_it_el.deref().clone());
+					diff.removed_items.push(it_el.deref().clone());
 				}
-				it.next();
-				other_it.next();
+				it_el = match it.next() {
+					Some(x) => x,
+					None => {it_stop = true; &dummy}
+				};
+				other_it_el = match other_it.next() {
+					Some(x) => x,
+					None => {other_it_stop = true;  &dummy}
+				};
 			}
+		}
+	}
+
+	pub fn print(&self) {
+		for x in self.dir_items.iter() {
+			println!("{:?}", x);
 		}
 	}
 }
@@ -129,7 +222,7 @@ pub fn gen_hash(file_contents: &String) -> String {
     sha.result_str()
 }
 
-fn add_to_db(start_path: &String, file_hash: &String, file_contents: &String) {
+pub fn add_to_db(start_path: &String, file_hash: &String, file_contents: &String) {
 	let root_dir = get_root_dir(start_path);
 
 	if *file_hash != String::new() {
@@ -144,6 +237,28 @@ fn add_to_db(start_path: &String, file_hash: &String, file_contents: &String) {
 			write_to_file(&PathBuf::from(db_path), &file_contents)
 		}
 	}
+}
+
+pub fn get_from_db(start_path: &String, hash: &String) -> String {
+	let root_dir = get_root_dir(start_path);
+
+	let mut db_path = PathBuf::from(root_dir);
+	db_path.push("_init_");
+	db_path.push("db");
+	db_path.push(hash);
+	return get_file_content(&db_path);
+}
+
+pub fn exists_in_db(start_path: &String, path: &String) -> bool {
+	let root_dir = get_root_dir(start_path);
+
+	let mut db_path = PathBuf::from(root_dir);
+	db_path.push("_init_");
+	db_path.push("db");
+	db_path.push(path);
+	let path = db_path.as_path();
+
+	path.is_file()
 }
 
 pub fn get_root_dir(start_path: &String) -> String {
