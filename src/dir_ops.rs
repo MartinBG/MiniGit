@@ -5,6 +5,7 @@ use std::io::prelude::*;
 extern crate crypto;
 use self::crypto::digest::Digest;
 use self::crypto::sha1::Sha1;
+use std::process;
 
 pub fn get_file_content(file_path: &PathBuf) -> String {
 	let path = file_path.as_path();
@@ -12,19 +13,30 @@ pub fn get_file_content(file_path: &PathBuf) -> String {
 		String::new()
 	} 
 	else {
-		let mut f = File::open(&file_path).expect("file not found");
+		let mut f = File::open(&file_path).unwrap_or_else(|_| {
+			eprintln!("File {} not found.", &file_path.as_path().to_str().unwrap());
+			process::exit(1);
+		});
 	    let mut contents = String::new();
-	    f.read_to_string(&mut contents)
-	        .expect("something went wrong reading the file");
+	    f.read_to_string(&mut contents).unwrap_or_else(|_| {
+			eprintln!("Something went wrong reading the file: {}.", &file_path.as_path().to_str().unwrap());
+			process::exit(1);
+		});
 	    return String::from(contents);
 	}
 }
 
 pub fn write_to_file(file_path: &PathBuf, contents: &String) {
-	let mut f = File::create(&file_path).expect("could not create file");
+	let mut f = File::create(&file_path).unwrap_or_else(|_| {
+			eprintln!("Could not create file: {}.", &file_path.as_path().to_str().unwrap());
+			process::exit(1);
+		});
 
     f.write_all(contents.as_bytes())
-        .expect("something went wrong writing the file");
+        .unwrap_or_else(|_| {
+			eprintln!("Something went wrong writing the file: {}.", &file_path.as_path().to_str().unwrap());
+			process::exit(1);
+		});
 }
 
 pub fn gen_hash(file_contents: &String) -> String {
@@ -82,7 +94,8 @@ pub fn get_root_dir(start_path: &String) -> String {
 		else {
 			curr_path_buff.pop();
 			if !curr_path_buff.pop() {
-				panic!("Cannot find repository root directory. Folder _init_ should exists.")
+				eprintln!("Cannot find repository root directory. Folder _init_ should exists.");
+				process::exit(1);
 			}
 		}
 	}
