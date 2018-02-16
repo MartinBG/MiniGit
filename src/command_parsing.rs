@@ -1,5 +1,13 @@
 use std::fmt;
 use std::fmt::Display;
+use ::checkout::checkout;
+use ::cherry_pick::cherryPick;
+use ::commit::commit;
+use init::init;
+use log::log;
+use revert::revert;
+use status::status;
+
 
 //Too many arguments parameter shows the expected number of arguments
 #[derive(Debug)]
@@ -93,15 +101,15 @@ fn handle_parse_error(args: &Vec<String>) -> Result<bool, CommandParseError> {
 	Ok(true)
 }
 
-// pub fn run_command(cmd: Command) {
-// 	match cmd {
-// 		Init => Init::run(),
-// 		Log => Log::run(),
-// 		Revert => Revert::run(),,
-// 		Status => Status::run(),,
-// 		Checkout(commitId) => Checkout::run(commitId),
-// 		Commit(message) => Commit::run(message),
-// 		CherryPick(commitId, filepath) => CherryPick(commitId, filepath)
-// 		_ => panic!("Wrong command passed in run_command") 
-// 	}
-// }
+pub fn run_command(cmd: Command, path: &String) {
+	match cmd {
+		Command::Init => init(path),
+		Command::Log => log(path),
+		Command::Revert => revert(path),
+		Command::Status => status(path),
+		Command::Checkout(commitId) => checkout(path, &commitId),
+		Command::Commit(message) => commit(path, &message),
+		Command::CherryPick(commitId, filepath) => cherryPick(path, &commitId, &filepath),
+		_ => panic!("Wrong command passed in run_command") 
+	}
+}

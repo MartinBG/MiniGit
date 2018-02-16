@@ -12,7 +12,7 @@ use ::{serde_json,serde_derive};
 use std::ops::Deref;
 use std::fs::{remove_file, create_dir};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DirItem {
 	pub path: String,
 	pub hash: String
@@ -83,7 +83,7 @@ impl DirTreeDifferences {
 	}
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DirTree {
 	pub dir_items: Vec<DirItem>
 }
@@ -149,14 +149,11 @@ impl DirTree {
 
 		let mut cnt = 0;
 		loop {
-			// println!("cnt: {:?}\n{:?}\n\n{:?}\n", &cnt, it_el, other_it_el);
 			cnt+=1;
 			if it_stop && other_it_stop {
-				// println!("final stop");
 				return diff;
 			}
 			else if it_stop || (!other_it_stop && it_el.path > other_it_el.path) {
-				// println!("left stop");
 				diff.added_items.push(other_it_el.deref().clone());
 				other_it_el = match other_it.next() {
 					Some(x) => x,
@@ -164,7 +161,6 @@ impl DirTree {
 				};
 			}
 			else if other_it_stop || (!it_stop && it_el.path < other_it_el.path) {
-				// println!("right stop");
 				diff.removed_items.push(it_el.clone());
 				it_el = match it.next() {
 					Some(x) => x,

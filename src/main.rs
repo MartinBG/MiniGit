@@ -19,16 +19,44 @@ use MiniGit::init::*;
 use MiniGit::commit::*;
 use MiniGit::status::*;
 use MiniGit::log::*;
+use MiniGit::cherry_pick::*;
+use MiniGit::checkout::*;
+use MiniGit::revert::*;
+use std::env;
+use MiniGit::command_parsing::*;
+use std::process;
+
 
 fn main() {
+	
+	let curr_dir = env::current_dir().unwrap_or_else(|err| {
+		eprintln!("{}", err);
+		process::exit(1);
+	});
+	
+	let args: Vec<String> = env::args().collect();
+	let command = parse_command(&args).unwrap_or_else(|err| {
+		eprintln!("{}", err);
+		process::exit(1);
+	});
+
+	let path = curr_dir.as_path();
+	let path_str = path.to_str().unwrap();
+
+	run_command(command, &String::from(path_str));
 
    	// init(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
-   	//commit(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), &String::from("Second commit"));
+   	//commit(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), &String::from("added lvl 0 - 3,4"));
    	//status(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
-   	log(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
+   	// log(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
+   	// cherryPick(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), 
+   	// 		  &String::from("commit_2018.1.15.23.20.45.json"), 
+   	// 		  &String::from("C:\\MyThings\\rust\\MiniGit\\testDir\\file_lvl0_1.txt"));
 
+   	// checkout(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"), 
+   	// 		  &String::from("commit_2018.1.16.22.51.18.json"))
 
-
+   	//revert(&String::from("C:\\MyThings\\rust\\MiniGit\\testDir"));
 
 
     // let args: Vec<String> = env::args().collect();
