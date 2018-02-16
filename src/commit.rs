@@ -14,13 +14,13 @@ pub fn commit(start_path: &String, message: &String) {
 
 		for f in commit.dir_state.dir_items.iter() {
 			if f.hash != "" && !exists_in_db(&root, &f.hash)  {
-				let pathBuf = PathBuf::from(&f.path);
-				let contents = get_file_content(&pathBuf);
+				let path_buf = PathBuf::from(&f.path);
+				let contents = get_file_content(&path_buf);
 				add_to_db(&root, &f.hash, &contents);
 			}
 		}
 
-		let commit_name = SerializeCommit(&root, &commit);
+		let commit_name = serialize_commit(&root, &commit);
 		commits_status.current_commit = commit_name.clone();
 		commits_status.head_commit = commit_name;
 

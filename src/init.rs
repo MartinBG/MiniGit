@@ -6,8 +6,7 @@
 //create file status_info
 // first commit should be name head and it is going to be overwrited
 
-use std::path::{Path, PathBuf};
-use ::{serde_json,serde_derive};
+use std::path::PathBuf;
 use ::commits_status::*;
 use std::fs::create_dir;
 
@@ -20,7 +19,7 @@ pub fn init(start_path: &String) {
 		println!("There is already defined a repository!");
 		return;
 	} else {
-		create_dir(&path_buf);
+		create_dir(&path_buf).expect("could not create directory");;
 		
 		path_buf.push("db");
 		create_dir(&path_buf).expect("could not create directory");

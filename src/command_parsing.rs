@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Display;
 use ::checkout::checkout;
-use ::cherry_pick::cherryPick;
+use ::cherry_pick::cherry_pick;
 use ::commit::commit;
 use init::init;
 use log::log;
@@ -44,7 +44,7 @@ pub enum Command {
 pub fn parse_command(args: &Vec<String>) -> Result<Command, CommandParseError> {
 	
 	match handle_parse_error(args) {
-		Ok(ok) => (),
+		Ok(_) => (),
 		Err(err) => return Err(err)
 	}
 
@@ -107,9 +107,9 @@ pub fn run_command(cmd: Command, path: &String) {
 		Command::Log => log(path),
 		Command::Revert => revert(path),
 		Command::Status => status(path),
-		Command::Checkout(commitId) => checkout(path, &commitId),
+		Command::Checkout(commit_id) => checkout(path, &commit_id),
 		Command::Commit(message) => commit(path, &message),
-		Command::CherryPick(commitId, filepath) => cherryPick(path, &commitId, &filepath),
-		_ => panic!("Wrong command passed in run_command") 
+		Command::CherryPick(commit_id, filepath) => cherry_pick(path, &commit_id, &filepath),
+		_ => panic!("Wrong command passed in run_command")
 	}
 }

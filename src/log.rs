@@ -4,7 +4,7 @@
 //print them in order
 extern crate walkdir;
 use self::walkdir::WalkDir;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use ::commit_node::*;
 use ::dir_ops::*;
 
@@ -29,7 +29,7 @@ pub fn log(start_path: &String) {
 		let commit_name = String::from(*split.last().unwrap());
 
 		if commit_name != "commits" {
-			let commit = DeserializeCommit(&root, &commit_name);
+			let commit = deserialize_commit(&root, &commit_name);
 			commit.print();
 		}
 	}

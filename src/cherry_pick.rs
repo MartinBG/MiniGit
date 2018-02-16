@@ -6,14 +6,14 @@
 //3) check exist and if does check hash and if equal do nothing other case del and add
 
 use ::dir_ops::*;
-use ::commits_status::*;
+use ::dir_structs::*;
 use ::commit_node::*;
 use std::path::PathBuf;
 
-pub fn cherryPick(start_path: &String, commit_id: &String, file_path: &String) {
+pub fn cherry_pick(start_path: &String, commit_id: &String, file_path: &String) {
 	let root = get_root_dir(start_path);
 
-	let desired_commit = DeserializeCommit(&root, commit_id);
+	let desired_commit = deserialize_commit(&root, commit_id);
 
 	let found_path: Vec<&DirItem> = desired_commit.dir_state.dir_items
 									.iter()

@@ -7,6 +7,7 @@
 // print
 
 use ::dir_ops::*;
+use ::dir_structs::*;
 use ::commits_status::*;
 use ::commit_node::*;
 
@@ -14,7 +15,7 @@ pub fn status(start_path: &String) {
 	let root = get_root_dir(start_path);
 
 	let commits_status = CommitsStatus::load(&root);
-	let current_commit = DeserializeCommit(&start_path, &commits_status.current_commit);
+	let current_commit = deserialize_commit(&start_path, &commits_status.current_commit);
 
 	let current_dir_tree = DirTree::new(&root);
 

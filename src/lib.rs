@@ -1,6 +1,4 @@
-#[macro_use]
 extern crate serde;
-#[macro_use]
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
@@ -15,5 +13,6 @@ pub mod cherry_pick;
 pub mod revert;
 pub mod status;
 pub mod dir_ops;
+pub mod dir_structs;
 pub mod commit_node;
 pub mod commits_status;

@@ -1,6 +1,6 @@
 use ::dir_ops::*;
-use std::path::{Path, PathBuf};
-use ::{serde_json,serde_derive};
+use std::path::PathBuf;
+use ::serde_json;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommitsStatus {
@@ -23,12 +23,12 @@ impl CommitsStatus {
 		path.push("commits_status.json");
 
 		let content = get_file_content(&path);
-		let commitsStatus: Self = match serde_json::from_str(&content) {
+		let commits_status: Self = match serde_json::from_str(&content) {
 			Ok(res) => res,
 			Err(err) => panic!(err)
 		};
 
-		commitsStatus
+		commits_status
 	}
 
 	pub fn save(&self, start_dir: &String) {
